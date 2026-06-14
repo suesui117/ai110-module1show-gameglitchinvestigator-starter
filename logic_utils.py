@@ -97,3 +97,56 @@ def update_score(current_score: int, outcome: str, attempt_number: int):
         return current_score - 5
 
     return current_score
+
+
+# FEATURE (stretch): Guess History visualization. Built with Claude Code
+# (agent mode). Pure logic so the "how close was each guess" math is unit-
+# testable without Streamlit; app.py renders the result in the sidebar.
+def guess_closeness(guess: int, secret: int, low: int, high: int):
+    """
+    Describe how close a guess is to the secret.
+
+    Returns (distance, label, closeness):
+      - distance:  abs(guess - secret)
+      - label:     "correct" | "hot" | "warm" | "cold"
+      - closeness: float in [0.0, 1.0]; 1.0 = exact match, 0.0 = as far as
+                   possible within [low, high].
+    """
+    distance = abs(guess - secret)
+    span = max(high - low, 1)  # guard against divide-by-zero
+    closeness = max(0.0, 1.0 - distance / span)
+
+    if distance == 0:
+        label = "correct"
+    elif distance <= 0.10 * span:
+        label = "hot"
+    elif distance <= 0.25 * span:
+        label = "warm"
+    else:
+        label = "cold"
+
+    return distance, label, closeness
+
+
+def history_rows(history, secret: int, low: int, high: int):
+    """
+    Build closeness rows for the numeric guesses in `history`.
+
+    Invalid inputs are stored in history as raw strings; those are skipped.
+    Returns a list of dicts (in the same order as history):
+        {"guess": int, "distance": int, "label": str, "closeness": float}
+    """
+    rows = []
+    for entry in history:
+        # bool is a subclass of int -- exclude it so True/False aren't charted.
+        if isinstance(entry, int) and not isinstance(entry, bool):
+            distance, label, closeness = guess_closeness(entry, secret, low, high)
+            rows.append(
+                {
+                    "guess": entry,
+                    "distance": distance,
+                    "label": label,
+                    "closeness": closeness,
+                }
+            )
+    return rows

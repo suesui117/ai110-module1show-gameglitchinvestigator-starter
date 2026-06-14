@@ -9,6 +9,7 @@ from logic_utils import (
     check_guess,
     update_score,
     new_game_state,
+    history_rows,
 )
 
 # UI starts here. All pure game logic now lives in logic_utils.py.
@@ -128,6 +129,31 @@ with st.expander("Developer Debug Info"):
     st.write("Score:", st.session_state.score)
     st.write("Difficulty:", difficulty)
     st.write("History:", st.session_state.history)
+
+# FEATURE (stretch): Guess History sidebar -- visualizes how close each past
+# guess was to the secret (hot/warm/cold + a closeness bar). Rendered after the
+# submit handler so it includes the guess just made. Logic lives in logic_utils.
+_LABEL_EMOJI = {"correct": "🎯", "hot": "🔥", "warm": "🌤️", "cold": "❄️"}
+
+st.sidebar.divider()
+st.sidebar.subheader("📊 Guess History")
+
+_rows = history_rows(
+    st.session_state.history,
+    st.session_state.secret,
+    low,
+    high,
+)
+if not _rows:
+    st.sidebar.caption("No guesses yet — make one!")
+else:
+    # Newest guess at the top.
+    for _row in reversed(_rows):
+        _emoji = _LABEL_EMOJI.get(_row["label"], "")
+        st.sidebar.progress(
+            _row["closeness"],
+            text=f"{_row['guess']}  {_emoji} {_row['label']}",
+        )
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")

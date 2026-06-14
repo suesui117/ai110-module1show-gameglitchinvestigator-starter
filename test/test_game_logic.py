@@ -16,6 +16,8 @@ from logic_utils import (
     check_guess,
     get_range_for_difficulty,
     new_game_state,
+    guess_closeness,
+    history_rows,
 )
 
 
@@ -236,6 +238,66 @@ class TestDifficultyRanges:
 
     def test_unknown_difficulty_defaults_to_1_100(self):
         assert get_range_for_difficulty("???") == (1, 100)
+
+
+# ---------------------------------------------------------------------------
+# FEATURE (stretch): Guess History closeness math. "correct" at distance 0,
+# then hot/warm/cold bands; closeness is 1.0 at exact match, lower when farther.
+# ---------------------------------------------------------------------------
+class TestGuessCloseness:
+    def test_exact_match_is_correct_and_closeness_one(self):
+        distance, label, closeness = guess_closeness(42, 42, 1, 100)
+        assert distance == 0
+        assert label == "correct"
+        assert closeness == 1.0
+
+    def test_near_guess_is_hot(self):
+        # within 10% of a span of 99 -> "hot"
+        _, label, _ = guess_closeness(47, 42, 1, 100)
+        assert label == "hot"
+
+    def test_medium_guess_is_warm(self):
+        _, label, _ = guess_closeness(62, 42, 1, 100)  # distance 20, ~20% of span
+        assert label == "warm"
+
+    def test_far_guess_is_cold(self):
+        _, label, _ = guess_closeness(100, 1, 1, 100)  # max distance
+        assert label == "cold"
+
+    def test_closeness_is_within_unit_interval(self):
+        for guess in range(1, 101):
+            _, _, closeness = guess_closeness(guess, 50, 1, 100)
+            assert 0.0 <= closeness <= 1.0
+
+    def test_closer_guess_has_higher_closeness(self):
+        _, _, near = guess_closeness(45, 42, 1, 100)
+        _, _, far = guess_closeness(90, 42, 1, 100)
+        assert near > far
+
+    def test_single_value_range_does_not_divide_by_zero(self):
+        # low == high (span guarded to 1); should not raise.
+        distance, label, closeness = guess_closeness(5, 5, 5, 5)
+        assert label == "correct"
+        assert closeness == 1.0
+
+
+class TestHistoryRows:
+    def test_builds_one_row_per_numeric_guess(self):
+        rows = history_rows([10, 50, 90], 50, 1, 100)
+        assert [r["guess"] for r in rows] == [10, 50, 90]
+        assert rows[1]["label"] == "correct"  # 50 == secret
+
+    def test_skips_non_integer_entries(self):
+        # invalid inputs are stored as raw strings -> ignored
+        rows = history_rows(["abc", 50, "9.9"], 50, 1, 100)
+        assert [r["guess"] for r in rows] == [50]
+
+    def test_empty_history_returns_empty_list(self):
+        assert history_rows([], 50, 1, 100) == []
+
+    def test_each_row_has_expected_keys(self):
+        rows = history_rows([30], 50, 1, 100)
+        assert set(rows[0].keys()) == {"guess", "distance", "label", "closeness"}
 
 
 # ---------------------------------------------------------------------------
