@@ -20,14 +20,21 @@ Document at least 3 bugs you found. Add rows as needed.
 |-75| should accept only integers between 1 and 100 | accepted it and counted as one attempt | GO HIGHER! |
 |76| prompt me to go lower | prompt me to go higher | GO HIGHER! |
 | clicked on New Game | New Game should reset | New Game didn't reset | You already won. Start a new game to play again. |
+| attempt was at 1 before starting the game | attempt count to be 0 before the game | attempt count is 1 before the game | attempt count is off by 1 |
 
 ---
 
 ## 2. How did you use AI as a teammate?
 
-- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
+- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)? Claude Code
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
+
+When an even integer was entered, it's casted to a string, so even if it matches thes target, it doesn't return True.
+AI suggested to remove the conditional check e.g. if input % 2 == 0:...else... and removing the casting to string. It passed with the test case and I replayed the game.
+
 - Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
+
+I pointed out to AI that it accepts decimals, it initially fixed the one example I gave e.g. 6.6 was accepted when it shouldn't. So I tested it after the fix, and it was still accepting 6.1, so I had Claude Code fix again. It passed with the test case and I replayed the game.
 
 ---
 

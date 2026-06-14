@@ -1,74 +1,17 @@
 import random
 import streamlit as st
 
-def get_range_for_difficulty(difficulty: str):
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100
+# FIX: Refactored all pure game logic out of app.py into logic_utils.py
+# using Claude Code (agent mode), then imported it here. UI stays in app.py.
+from logic_utils import (
+    get_range_for_difficulty,
+    parse_guess,
+    check_guess,
+    update_score,
+    new_game_state,
+)
 
-
-def parse_guess(raw: str):
-    if raw is None:
-        return False, None, "Enter a guess."
-
-    if raw == "":
-        return False, None, "Enter a guess."
-
-    try:
-        if "." in raw:
-            value = int(float(raw))
-        else:
-            value = int(raw)
-    except Exception:
-        return False, None, "That is not a number."
-
-    # FIXME: Logic breaks here
-    if value < 1 or value > 100:
-        return False, None, "Enter a number between 1 and 100."
-
-    return True, value, None
-
-
-def check_guess(guess, secret):
-    if guess == secret:
-        return "Win", "🎉 Correct!"
-
-    try:
-        # FIXME: Logic breaks here
-        if guess > secret:
-            return "Too High", "📉 Go LOWER!"
-        else:
-            return "Too Low", "📈 Go HIGHER!"
-    except TypeError:
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
-
-
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
-
-    if outcome == "Too Low":
-        return current_score - 5
-
-    return current_score
-
+# UI starts here. All pure game logic now lives in logic_utils.py.
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
 st.title("🎮 Game Glitch Investigator")
@@ -94,34 +37,14 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-if "secret" not in st.session_state:
-    st.session_state.secret = random.randint(low, high)
-
-if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
-
-if "score" not in st.session_state:
-    st.session_state.score = 0
-
 if "status" not in st.session_state:
-    st.session_state.status = "playing"
-
-if "history" not in st.session_state:
-    st.session_state.history = []
+    # FIX: paired with Claude Code (agent mode) to share new_game_state() with
+    # the New Game button, fixing the attempts 1-vs-0 mismatch. Start at 0.
+    st.session_state.update(new_game_state(random.randint(low, high)))
 
 st.subheader("Make a guess")
 
-st.info(
-    f"Guess a number between 1 and 100. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
-
-with st.expander("Developer Debug Info"):
-    st.write("Secret:", st.session_state.secret)
-    st.write("Attempts:", st.session_state.attempts)
-    st.write("Score:", st.session_state.score)
-    st.write("Difficulty:", difficulty)
-    st.write("History:", st.session_state.history)
+st.info(f"Guess a number between {low} and {high}.")
 
 raw_guess = st.text_input(
     "Enter your guess:",
@@ -137,8 +60,9 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
-    st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    # FIX: rewritten with Claude Code (agent mode). Old reset never set status
+    # back to "playing", so the game stayed frozen after a win. Full reset now.
+    st.session_state.update(new_game_state(random.randint(low, high)))
     st.success("New game started.")
     st.rerun()
 
@@ -152,7 +76,9 @@ if st.session_state.status != "playing":
 if submit:
     st.session_state.attempts += 1
 
-    ok, guess_int, err = parse_guess(raw_guess)
+    # FIX: paired with Claude Code (agent mode) to pass the difficulty range
+    # (low, high) into parse_guess instead of the old hardcoded 1-100.
+    ok, guess_int, err = parse_guess(raw_guess, low, high)
 
     if not ok:
         st.session_state.history.append(raw_guess)
@@ -160,7 +86,8 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
-        # FIXME: Logic breaks here
+        # FIX: high/low hint bug resolved in logic_utils.check_guess (was a
+        # stale "# FIXME: Logic breaks here" marker).
         secret = st.session_state.secret
 
         outcome, message = check_guess(guess_int, secret)
@@ -189,6 +116,18 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+# FIX: moved here with Claude Code (agent mode). This used to render ABOVE the
+# submit handler, so the count lagged one click behind. Rendering it AFTER the
+# handler means it reflects the guess just made (attempts incremented above).
+st.info(f"Attempts left: {attempt_limit - st.session_state.attempts}")
+
+with st.expander("Developer Debug Info"):
+    st.write("Secret:", st.session_state.secret)
+    st.write("Attempts:", st.session_state.attempts)
+    st.write("Score:", st.session_state.score)
+    st.write("Difficulty:", difficulty)
+    st.write("History:", st.session_state.history)
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
