@@ -27,6 +27,16 @@ def _attempts_left_text(at):
     return None
 
 
+def _wrong_guess(at):
+    """An in-range guess string guaranteed NOT to equal the secret.
+
+    Avoids accidentally winning (which would freeze further submits and make
+    multi-guess tests flaky depending on the random secret).
+    """
+    secret = at.session_state["secret"]
+    return "1" if secret != 1 else "2"
+
+
 # ---------------------------------------------------------------------------
 # THE BUG WE JUST FIXED: decimals were silently truncated and accepted.
 # "6.6" became 6, "91.1" became 91 -- a decimal could win the game.
@@ -257,8 +267,9 @@ class TestAttemptsCounterInApp:
         at = AppTest.from_file("app.py")
         at.run()
 
+        wrong = _wrong_guess(at)  # never wins, so submits keep working
         for expected in (1, 2, 3):
-            at.text_input[0].set_value("50")
+            at.text_input[0].set_value(wrong)
             at.button[0].click().run()
             assert at.session_state["attempts"] == expected
 
@@ -270,10 +281,11 @@ class TestNewGameResetsCounterInApp:
         at = AppTest.from_file("app.py")
         at.run()
 
-        # Make a couple of guesses...
-        at.text_input[0].set_value("50")
+        # Make a couple of (deliberately wrong) guesses...
+        wrong = _wrong_guess(at)
+        at.text_input[0].set_value(wrong)
         at.button[0].click().run()
-        at.text_input[0].set_value("60")
+        at.text_input[0].set_value(wrong)
         at.button[0].click().run()
         assert at.session_state["attempts"] == 2
 
