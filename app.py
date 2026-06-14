@@ -26,6 +26,7 @@ def parse_guess(raw: str):
     except Exception:
         return False, None, "That is not a number."
 
+    # FIXME: Logic breaks here
     if value < 1 or value > 100:
         return False, None, "Enter a number between 1 and 100."
 
@@ -37,6 +38,7 @@ def check_guess(guess, secret):
         return "Win", "🎉 Correct!"
 
     try:
+        # FIXME: Logic breaks here
         if guess > secret:
             return "Too High", "📉 Go LOWER!"
         else:
@@ -158,6 +160,7 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
+        # FIXME: Logic breaks here
         secret = st.session_state.secret
 
         outcome, message = check_guess(guess_int, secret)
