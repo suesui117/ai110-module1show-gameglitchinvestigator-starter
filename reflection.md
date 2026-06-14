@@ -4,9 +4,12 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 
 ## 1. What was broken when you started?
 
-- What did the game look like the first time you ran it?
-- List at least two concrete bugs you noticed at the start  
+- What did the game look like the first time you ran it? target was 75, when i entered 76, it prompt me to go higher.
+- List at least two concrete bugs you noticed at the start 
   (for example: "the hints were backwards").
+  attempt started at 1 when I haven't started.
+  click on new game after winning doesn't give me a new game
+
 
 **Bug Reproduction Log**
 
@@ -14,9 +17,9 @@ Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior | Actual Behavior | Console Output / Error |
 |-------|-------------------|-----------------|------------------------|
-|keeps prompting going lower| | | |
-|counts attempts| | | |
-| strings | | | |
+|-75| should accept only integers between 1 and 100 | accepted it and counted as one attempt | GO HIGHER! |
+|76| prompt me to go lower | prompt me to go higher | GO HIGHER! |
+| clicked on New Game | New Game should reset | New Game didn't reset | You already won. Start a new game to play again. |
 
 ---
 
