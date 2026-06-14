@@ -27,13 +27,13 @@ It wrote the code, ran away, and now the game is unplayable.
 
 - [x] Describe the game's purpose. This is a fun mini game where user are prompt to enter an integer number between the range indicated by the level. User has x amount of attempts. If the user guessed the target correctly, game ends with a successful message. Within the attempts allowed, user is allowed multiple attempts.
 - [x] Detail which bugs you found.
-- [ ] 1. game accepted negative numbers which is wrong
-- [ ] 2. prompted to go higher/lower when it meant the opposite
-- [ ] 3. attempt count was off by 1. Overcounted.
-- [ ] 4. even integer was casted to string, so it never matches the target.
-- [ ] 5. kept UI logic in app.py and moved pure game logic to logic_utils.py
+- [x] 1. game accepted negative numbers which is wrong
+- [x] 2. prompted to go higher/lower when it meant the opposite
+- [x] 3. attempt count was off by 1. Overcounted.
+- [x] 4. even integer was casted to string, so it never matches the target.
+- [x] 5. kept UI logic in app.py and moved pure game logic to logic_utils.py
 - [x] Explain what fixes you applied.
-- [ ]  Step 1 — Refactored logic out of the UI
+- [x]  Step 1 — Refactored logic out of the UI
 
 Moved check_guess, parse_guess, get_range_for_difficulty, update_score from app.py → logic_utils.py.
 app.py now imports them; UI (anything st.) stayed put. This made the logic testable on its own.
