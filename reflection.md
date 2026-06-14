@@ -40,22 +40,35 @@ I pointed out to AI that it accepts decimals, it initially fixed the one example
 
 ## 3. Debugging and testing your fixes
 
-- How did you decide whether a bug was really fixed?
+- How did you decide whether a bug was really fixed? replay the game with the same error deliberately and see if it's fixed.
+  
 - Describe at least one test you ran (manual or using pytest)  
   and what it showed you about your code.
+    def test_6_point_6_is_rejected(self):
+        ok, value, err = parse_guess("6.6", 1, 20)
+        assert ok is False
+        assert value is None
+        assert err is not None
+
+    def test_91_point_1_is_rejected(self):
+        ok, value, err = parse_guess("91.1", 1, 100)
+        assert ok is False
+        assert value is None
+
 - Did AI help you design or understand any tests? How?
+It helped me design, but didn't explain it unless I specially ask for it.
 
 ---
 
 ## 4. What did you learn about Streamlit and state?
 
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
+- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit? Streamlit is dynamic because it reruns the script and uses session state as persistent memory, unlike react and Django, rather than requiring you to spin up a new session or portal.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
 - What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
-- What is one thing you would do differently next time you work with AI on a coding task?
-- In one or two sentences, describe how this project changed the way you think about AI generated code.
+  - prompt AI to do one thing at a time, instead of multiple bugs because often times, they are interleaved. and doing multiple things might break everything and it becomes more difficult to debug.
+- What is one thing you would do differently next time you work with AI on a coding task? I'd like ask it to shorten the explanation, and explain to me in layman's term. It gets verbose and I lose patience when reading it.
+- In one or two sentences, describe how this project changed the way you think about AI generated code. It's very interactive and it has control if I allow it, instead of me searching and copying codes into ChatGPT, Claude Code works side by side with me, and it could run Bash commands, this really caught me by surprise. I find this powerful. I'm actually pretty pleased it could do that, often times its the virtual env setup or python library versions being incompatible threw me off. I ended up spending alot of time troubleshooting it. I didn't need to do that this time.
